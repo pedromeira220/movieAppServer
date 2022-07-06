@@ -21,6 +21,13 @@ app.post('/user/register', async (req, res) => {
         name?: string
     }
 
+    type userRegisteredProps = {
+		id: string,
+		email: string,
+        password?: string
+        name?: string
+	}
+
     const { email, password, name }: userProps = req.body.user;
 
     if (!email) {
@@ -41,7 +48,8 @@ app.post('/user/register', async (req, res) => {
 
     const encryptedPassword = encrypt(password);
 
-    const userRegistered = await createUserInDataBase({ email, encryptedPassword, name});
+
+    const userRegistered: userRegisteredProps = await createUserInDataBase({ email, encryptedPassword, name});
 
     return res.status(201).json({ data: userRegistered });
 });
