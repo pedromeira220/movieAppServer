@@ -1,7 +1,10 @@
 import express from 'express';
 import { createUserInDataBase } from './functions/createUserInDataBase';
+import { decrypt } from './functions/decrypt';
+import { encrypt } from './functions/encrypt';
 import { findUserInDatabaseByEmail } from './functions/findUserInDatabaseByEmail';
 import { prisma } from './prisma';
+
 
 const PORT = 3333;
 
@@ -12,7 +15,13 @@ app.use(express.json());
 
 app.post('/user/register', async (req, res) => {
 
-    const { email, password, name } = req.body.user;
+    type userProps = {
+        email?: string,
+        password?: string
+        name?: string
+    }
+
+    const { email, password, name }: userProps = req.body.user;
 
     if (!email) {
         return res.status(422).json({ error: true, msg: "O email é obrigatório" });
@@ -30,12 +39,14 @@ app.post('/user/register', async (req, res) => {
         return res.status(422).json({ error: true, msg: "Usuário já cadastrado" });
     }
 
-    const userRegistered = createUserInDataBase({ email, password, name});
+    const encryptedPassword = encrypt(password);
+
+    const userRegistered = await createUserInDataBase({ email, encryptedPassword, name});
 
     return res.status(201).json({ data: userRegistered });
 });
 
-app.post('/user/register', async (req, res) => {
+app.post('/user/login', async (req, res) => {
     const { password, email } = req.body.user;
 
     if(!password) {
@@ -45,11 +56,12 @@ app.post('/user/register', async (req, res) => {
     if(!email) {
         return res.status(422).json({ error: true, msg: "The email is required" });
     }
+    return res.status(200)
 })
 
 app.listen(PORT, () => {
     console.log("HTTP server running on the port " + PORT);
-
+    
 }); 
 
 
