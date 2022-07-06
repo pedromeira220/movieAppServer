@@ -35,40 +35,17 @@ app.post('/user/register', async (req, res) => {
     return res.status(201).json({ data: userRegistered });
 });
 
-/* app.post('/user/login', async (req, res) => {
-    const { loginEmail, loginEmail, LoginPassword, LoginName } = req.body.user;
+app.post('/user/register', async (req, res) => {
+    const { password, email } = req.body.user;
 
-    const userLogged = await prisma.user.create({
-        data: {
-            email: ,
-            name,
-            password,
-        }
-    });
-
-    if (!email) {
-        return res.status(422).json({ error: true, msg: "O email é obrigatório" });
-    }
-    if (!name) {
-        return res.status(422).json({ error: true, msg: "O nome do usuário é obrigatório" });
-    }
-    if (!password) {
-        return res.status(422).json({ error: true, msg: "A senha é obrigatório" });
+    if(!password) {
+        return res.status(422).json({ error: true, msg: "The password is required" });
     }
 
-    const checkUser = await prisma.user.findFirst({
-        where: {
-            email: ,
-        },
-    })
-
-    if (checkUser) {
-        return res.status(422).json({ error: true, msg: "Usuário já cadastrado" });
+    if(!email) {
+        return res.status(422).json({ error: true, msg: "The email is required" });
     }
-
-    return res.status(201).json({ data: userLogged }); 
-
-}); */
+})
 
 app.listen(PORT, () => {
     console.log("HTTP server running on the port " + PORT);
