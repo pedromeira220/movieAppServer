@@ -55,7 +55,13 @@ app.post('/user/register', async (req, res) => {
 });
 
 app.post('/user/login', async (req, res) => {
-    const { password, email } = req.body.user;
+
+    type userProps = {
+        password: string | null,
+        email: string | null,
+    }
+
+    const { password, email }: userProps = req.body.user;
 
     if(!password) {
         return res.status(422).json({ error: true, msg: "The password is required" });
@@ -64,7 +70,20 @@ app.post('/user/login', async (req, res) => {
     if(!email) {
         return res.status(422).json({ error: true, msg: "The email is required" });
     }
-    return res.status(200)
+
+    const userFound = await findUserInDatabaseByEmail(email);
+
+    if(!userFound) {
+        return res.status(404).json({ error: true, msg: "User or password invalid" });
+    }
+
+    const decryptPassword = decrypt(userFound.password);
+
+    if(password !== decryptPassword) {
+        return res.status(404).json({ error: true, msg: "User or password invalid" });
+    }
+
+    return res.status(200).json({error: false, user: {email, password}});
 })
 
 app.listen(PORT, () => {
@@ -73,6 +92,3 @@ app.listen(PORT, () => {
 }); 
 
 
-
-
-//Functions 
