@@ -21,6 +21,8 @@
   "dependencies": {
     "@prisma/client": "^4.0.0",
     "@types/crypto-js": "^4.1.1",
-    "crypto-js": "^4.1.1"
+    "@types/jsonwebtoken": "^8.5.8",
+    "crypto-js": "^4.1.1",
+    "jsonwebtoken": "^8.5.1"
   }
 }
