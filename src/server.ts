@@ -12,6 +12,7 @@ import { Request, Response, NextFunction } from 'express';
 import { createListInDataBase } from './functions/createListInDataBase';
 
 import { listProps } from './functions/createListInDataBase';
+import { addMoviesToList, movieProps } from './functions/addMoviesToList';
 
 const PORT = 3333;
 
@@ -189,12 +190,42 @@ app.get('/user/create_list/:list_name/:list_type/:user_id', checkToken, async (r
     const listCreated = createListInDataBase(list);
 
     if (listCreated == null) {
-        return res.status(500).json({ error: true, msg: "Internal server error, tyr again later" });
+        return res.status(500).json({ error: true, msg: "Internal server error, try again later" });
     }
 
-    return res.status(200).json({ list });
+    return res.status(200).json({ listCreated });
 });
 
+
+app.get('/user/add_movie_to_list/:list_id/:TMDB_id', checkToken, async (req: Request, res: Response) => {
+
+    const { list_id, TMDB_id } = req.params;
+
+    if (!list_id) {
+        return res.status(422).json({ error: true, msg: "The list id is required" });
+    }
+
+    if (!TMDB_id) {
+        return res.status(422).json({ error: true, msg: "The TMDB id is required, this is the movie id on the The Movie DataBase API" });
+    }
+
+    if ((typeof parseInt(TMDB_id) != 'number')) {
+        return res.status(422).json({ error: true, msg: "The TMDB id have to be a number" });
+    }
+
+    const movie: movieProps = {
+        listId: list_id,
+        TMDBid: parseInt(TMDB_id)
+    }
+
+    const movieCreated = addMoviesToList(movie);
+
+    if (movieCreated == null) {
+        return res.status(500).json({ error: true, msg: "Internal server error, try again later" });
+    }
+
+    return res.status(200).json({ movieCreated });
+});
 
 
 app.listen(PORT, () => {
