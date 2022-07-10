@@ -64,6 +64,7 @@ app.post('/user/register', async (req, res) => {
         name?: string
     }
 
+
     const { email, password, name }: userProps = req.body.user;
 
     if (!email) {
