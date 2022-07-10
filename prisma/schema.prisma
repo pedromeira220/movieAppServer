@@ -35,7 +35,7 @@ model List {
 
 model Movie {
   id     String  @id @default(uuid())
-  TMDBid String  @unique
+  TMDBid Int
   List   List?   @relation(fields: [listId], references: [id])
   listId String?
 }
