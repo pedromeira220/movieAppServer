@@ -229,7 +229,7 @@ app.get('/user/add_movie_to_list/:list_id/:TMDB_id', checkToken, async (req: Req
     return res.status(200).json({ movieCreated });
 });
 
-app.post('/user/delete_movie', checkToken, async (req: Request, res: Response) => {
+app.delete('/user/delete_movie', checkToken, async (req: Request, res: Response) => {
     const { list_id, TMDB_id } = req.body;
 
     if (!list_id) {
