@@ -3,34 +3,36 @@ import { movieProps } from "./addMoviesToList";
 
 export async function deleteMovieByTmdBidAndListId({ TMDBid, listId }: movieProps) {
 
-    try {
-
-        const movieFound = await prisma.movie.findFirst({
-            where: {
-                TMDBid,
-                listId
-            }
-        });
-
-        if (!movieFound) {
-            return null;
+    const movieFound = await prisma.movie.findFirst({
+        where: {
+            TMDBid,
+            listId
+        },
+        select: {
+            listId: true,
+            TMDBid: true,
+            id: true
         }
+    });
 
-        const movieId = movieFound.id;
-
-
-        const movieDeleted = await prisma.movie.delete({
-            where: {
-                id: movieId,
-            }
-        });
-
-        return movieDeleted;
-    } catch (error) {
-        console.error(error);
+    if (!movieFound) {
         return null;
-
     }
+
+    const movieId = movieFound?.id;
+
+
+    const movieDeleted = await prisma.movie.delete({
+        where: {
+            id: movieId,
+        }, select: {
+            listId: true,
+            TMDBid: true,
+        }
+    });
+
+    return movieDeleted;
+
 
 }
 

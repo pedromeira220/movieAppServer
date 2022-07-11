@@ -13,11 +13,12 @@ import { createListInDataBase } from './functions/createListInDataBase';
 
 import { listProps } from './functions/createListInDataBase';
 import { addMoviesToList, movieProps } from './functions/addMoviesToList';
+import { deleteMovieByTmdBidAndListId } from './functions/deleteMovieByTMDBidAndListId';
 
 const PORT = 3333;
 
 const app = express();
-var pedro = 1;
+
 
 
 //Middleware
@@ -228,6 +229,34 @@ app.get('/user/add_movie_to_list/:list_id/:TMDB_id', checkToken, async (req: Req
     return res.status(200).json({ movieCreated });
 });
 
+app.post('/user/delete_movie', checkToken, async (req: Request, res: Response) => {
+    const { list_id, TMDB_id } = req.body;
+
+    if (!list_id) {
+        return res.status(422).json({ error: true, msg: "The list id is required" });
+    }
+
+    if (!TMDB_id) {
+        return res.status(422).json({ error: true, msg: "The TMDB id is required, this is the movie id on the The Movie DataBase API" });
+    }
+
+    if (isNaN(parseInt(TMDB_id))) {
+        return res.status(422).json({ error: true, msg: "The TMDB id have to be a number" });
+    }
+
+    const movie: movieProps = {
+        listId: list_id,
+        TMDBid: parseInt(TMDB_id),
+    }
+
+    const deletedMovie = await deleteMovieByTmdBidAndListId(movie);
+
+    if (!deletedMovie) {
+        return res.status(404).json({ error: true, msg: "Movie id or list id invalid" });
+    }
+
+    return res.status(200).json({ deletedMovie });
+});
 
 app.listen(PORT, () => {
     console.log("HTTP server running on the port " + PORT);
