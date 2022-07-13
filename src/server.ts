@@ -293,7 +293,15 @@ app.get('/user/list_all_lists/:user_id', checkToken, async function (req: Reques
 
     const lists = await getListsOfAUser(user_id);
 
-    return res.status(200).json({ error: false, lists })
+    if (lists.length <= 0) {
+        return res.status(404).json({ error: true, msg: "User not found" });
+    }
+
+    return res.status(200).json({ error: false, lists });
+});
+
+app.get('/user/get_movie_by_api_id', checkToken, async (req: Request, res: Response) => {
+
 });
 
 app.listen(PORT, () => {

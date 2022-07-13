@@ -6,9 +6,14 @@ export async function getListsOfAUser(userId: string) {
         where: {
             ownerId: userId,
         },
+        select: {
+            ownerId: false,
+            id: true,
+            name: true,
+            type: true
+        }
     });
 
-    console.log("lista encontrada:", listsFound);
 
     return listsFound;
 
