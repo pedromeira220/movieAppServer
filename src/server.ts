@@ -15,6 +15,7 @@ import { listProps } from './functions/createListInDataBase';
 import { addMoviesToList, movieProps } from './functions/addMoviesToList';
 import { deleteMovieByTmdBidAndListId } from './functions/deleteMovieByTMDBidAndListId';
 import { deleteListById } from './functions/deleteListById';
+import { getListsOfAUser } from './functions/getListsOfAUser';
 
 const PORT = 3333;
 
@@ -190,7 +191,7 @@ app.get('/user/create_list/:list_name/:list_type/:user_id', checkToken, async (r
     }
 
 
-    const listCreated = createListInDataBase(list);
+    const listCreated = await createListInDataBase(list);
 
     if (listCreated == null) {
         return res.status(500).json({ error: true, msg: "Internal server error, try again later" });
@@ -221,7 +222,7 @@ app.get('/user/add_movie_to_list/:list_id/:TMDB_id', checkToken, async (req: Req
         TMDBid: parseInt(TMDB_id)
     }
 
-    const movieCreated = addMoviesToList(movie);
+    const movieCreated = await addMoviesToList(movie);
 
     if (movieCreated == null) {
         return res.status(500).json({ error: true, msg: "Internal server error, try again later" });
@@ -281,6 +282,18 @@ app.delete('/user/delete_list', checkToken, async function (req: Request, res: R
 
     return res.status(200).json({ error: false, deletedList });
 
+});
+
+app.get('/user/list_all_lists/:user_id', checkToken, async function (req: Request, res: Response) {
+    const { user_id } = req.params;
+
+    if (!user_id) {
+        return res.status(422).json({ error: true, msg: "The user id is required" });
+    }
+
+    const lists = await getListsOfAUser(user_id);
+
+    return res.status(200).json({ error: false, lists })
 });
 
 app.listen(PORT, () => {
