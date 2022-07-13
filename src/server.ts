@@ -14,6 +14,7 @@ import { createListInDataBase } from './functions/createListInDataBase';
 import { listProps } from './functions/createListInDataBase';
 import { addMoviesToList, movieProps } from './functions/addMoviesToList';
 import { deleteMovieByTmdBidAndListId } from './functions/deleteMovieByTMDBidAndListId';
+import { deleteListById } from './functions/deleteListById';
 
 const PORT = 3333;
 
@@ -256,6 +257,30 @@ app.delete('/user/delete_movie', checkToken, async (req: Request, res: Response)
     }
 
     return res.status(200).json({ deletedMovie });
+});
+
+app.delete('/user/delete_list', checkToken, async function (req: Request, res: Response) {
+    const { list_id, owner_id } = req.body;
+
+    if (!list_id) {
+        return res.status(422).json({ error: true, msg: "The list ID is required" });
+    }
+    if (!owner_id) {
+        return res.status(422).json({ error: true, msg: "The owner of the list ID is required" });
+    }
+
+    const deletedList = await deleteListById(list_id);
+
+    if (!deletedList) {
+        return res.status(404).json({ error: true, msg: "List id or owner id not found" });
+    }
+
+    if (deletedList.ownerId != owner_id) {
+        return res.status(404).json({ error: true, msg: "List id or owner id not found" });
+    }
+
+    return res.status(200).json({ error: false, deletedList });
+
 });
 
 app.listen(PORT, () => {
