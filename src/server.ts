@@ -16,6 +16,7 @@ import { addMoviesToList, movieProps } from './functions/addMoviesToList';
 import { deleteMovieByTmdBidAndListId } from './functions/deleteMovieByTMDBidAndListId';
 import { deleteListById } from './functions/deleteListById';
 import { getListsOfAUser } from './functions/getListsOfAUser';
+import { getMovieByApiID } from './functions/getMovieByApiId';
 
 const PORT = 3333;
 
@@ -300,8 +301,24 @@ app.get('/user/list_all_lists/:user_id', checkToken, async function (req: Reques
     return res.status(200).json({ error: false, lists });
 });
 
-app.get('/user/get_movie_by_api_id', checkToken, async (req: Request, res: Response) => {
+app.get('/user/get_movie_by_api_id_and_list_id/:TMDB_id/:list_id', checkToken, async (req: Request, res: Response) => {
+    const { TMDB_id, list_id } = req.params;
 
+    if (!TMDB_id) {
+        return res.status(422).json({ error: true, msg: "The api id is required" });
+    }
+
+    if (isNaN(parseInt(TMDB_id))) {
+        return res.status(422).json({ error: true, msg: "The api id have to be a number" });
+    }
+
+    const movieFound = await getMovieByApiID(parseInt(TMDB_id), list_id);
+
+    if (!movieFound) {
+        return res.status(404).json({ error: true, msg: "Movie not found" });
+    }
+
+    return res.status(200).json({ error: false, movie: movieFound });
 });
 
 app.listen(PORT, () => {
