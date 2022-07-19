@@ -1,14 +1,12 @@
 import { prisma } from "../prisma";
 
 
-
-export async function findUserInDatabaseByEmail(email: string) {
+export async function findUserInDatabaseById(userId: string) {
     const userFound = await prisma.user.findFirst({
         where: {
-            email: email,
+            id: userId
         },
         select: {
-            password: true,
             email: true,
             id: true,
             name: true,

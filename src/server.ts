@@ -6,6 +6,7 @@ import { findUserInDatabaseByEmail } from './functions/findUserInDatabaseByEmail
 import { prisma } from './prisma';
 import jwt from 'jsonwebtoken';
 import { credentials } from './credentials';
+import cors from 'cors';
 
 //express types
 import { Request, Response, NextFunction } from 'express';
@@ -17,6 +18,10 @@ import { deleteMovieByTmdBidAndListId } from './functions/deleteMovieByTMDBidAnd
 import { deleteListById } from './functions/deleteListById';
 import { getListsOfAUser } from './functions/getListsOfAUser';
 import { getMovieByApiID } from './functions/getMovieByApiId';
+import { getMoviesFromList } from './functions/getMoviesFromList';
+import { deleteAllMoviesFromList } from './functions/deleteAllMoviesFromList';
+import { findUserInDatabaseById } from './functions/findUserInDataBaseById';
+import { addDefaultListsToUser } from './functions/addDefaultListsToUser';
 
 const PORT = 3333;
 
@@ -25,7 +30,9 @@ const app = express();
 
 
 //Middleware
+app.use(cors());
 app.use(express.json());
+
 
 
 function checkToken(req: Request, res: Response, next: NextFunction) {
@@ -92,6 +99,8 @@ app.post('/user/register', async (req, res) => {
 
     const userRegistered: userRegisteredProps = await createUserInDataBase({ email, encryptedPassword, name });
 
+    addDefaultListsToUser(userRegistered.id);
+
     return res.status(201).json({ data: userRegistered });
 });
 
@@ -129,7 +138,7 @@ app.post('/user/login', async (req, res) => {
             id: userFound.id,
         }, secret);
 
-        return res.status(200).json({ error: false, user: { email, token } });
+        return res.status(200).json({ error: false, user: { email, token, id: userFound.id } });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: true, msg: "Internal server error, please try again later" });
@@ -168,9 +177,11 @@ app.get('/user/data/:user_id', checkToken, async (req: Request, res: Response) =
     return res.status(200).json({ error: false, user: userFound });
 });
 
-app.get('/user/create_list/:list_name/:list_type/:user_id', checkToken, async (req: Request, res: Response) => {
+app.post('/user/create_list', checkToken, async (req: Request, res: Response) => {
 
-    const { list_name, list_type, user_id } = req.params;
+
+
+    const { list_name, list_type, user_id } = req.body;
 
     if (!list_name) {
         return res.status(422).json({ error: true, msg: "The list name is required" });
@@ -198,13 +209,13 @@ app.get('/user/create_list/:list_name/:list_type/:user_id', checkToken, async (r
         return res.status(500).json({ error: true, msg: "Internal server error, try again later" });
     }
 
-    return res.status(200).json({ listCreated });
+    return res.status(200).json({ error: false, listCreated });
 });
 
 
-app.get('/user/add_movie_to_list/:list_id/:TMDB_id', checkToken, async (req: Request, res: Response) => {
+app.post('/user/add_movie_to_list/', checkToken, async (req: Request, res: Response) => {
 
-    const { list_id, TMDB_id } = req.params;
+    const { list_id, TMDB_id } = req.body;
 
     if (!list_id) {
         return res.status(422).json({ error: true, msg: "The list id is required" });
@@ -271,6 +282,8 @@ app.delete('/user/delete_list', checkToken, async function (req: Request, res: R
         return res.status(422).json({ error: true, msg: "The owner of the list ID is required" });
     }
 
+    await deleteAllMoviesFromList(list_id);
+
     const deletedList = await deleteListById(list_id);
 
     if (!deletedList) {
@@ -292,11 +305,15 @@ app.get('/user/list_all_lists/:user_id', checkToken, async function (req: Reques
         return res.status(422).json({ error: true, msg: "The user id is required" });
     }
 
-    const lists = await getListsOfAUser(user_id);
+    const userFound = await findUserInDatabaseById(user_id);
 
-    if (lists.length <= 0) {
+    if (!userFound) {
         return res.status(404).json({ error: true, msg: "User not found" });
     }
+
+
+    const lists = await getListsOfAUser(user_id);
+
 
     return res.status(200).json({ error: false, lists });
 });
@@ -320,6 +337,22 @@ app.get('/user/get_movie_by_api_id_and_list_id/:TMDB_id/:list_id', checkToken, a
 
     return res.status(200).json({ error: false, movie: movieFound });
 });
+
+app.get("/user/get_all_movies_from_list/:list_id", checkToken, async (req: Request, res: Response) => {
+    const { list_id } = req.params;
+
+    if (!list_id) {
+        return res.status(422).json({ error: true, msg: "The list id is required" });
+    }
+
+    const listFound = await getMoviesFromList({ listId: list_id });
+
+    if (!listFound) {
+        return res.status(404).json({ error: true, msg: "List not found" });
+    }
+
+    return res.status(200).json({ error: false, list: listFound });
+})
 
 app.listen(PORT, () => {
     console.log("HTTP server running on the port " + PORT);
