@@ -24,7 +24,7 @@ import { findUserInDatabaseById } from './functions/findUserInDataBaseById';
 import { addDefaultListsToUser } from './functions/addDefaultListsToUser';
 import { getUserLists } from './functions/getUserLists';
 
-const PORT = 3333;
+const PORT = process.env.PORT || 3333;
 
 const app = express();
 
