@@ -22,6 +22,7 @@ import { getMoviesFromList } from './functions/getMoviesFromList';
 import { deleteAllMoviesFromList } from './functions/deleteAllMoviesFromList';
 import { findUserInDatabaseById } from './functions/findUserInDataBaseById';
 import { addDefaultListsToUser } from './functions/addDefaultListsToUser';
+import { getUserLists } from './functions/getUserLists';
 
 const PORT = 3333;
 
@@ -177,6 +178,25 @@ app.get('/user/data/:user_id', checkToken, async (req: Request, res: Response) =
     return res.status(200).json({ error: false, user: userFound });
 });
 
+app.get('/user/get_user_lists/:user_id', checkToken, async (req: Request, res: Response) => {
+
+    const { user_id } = req.params;
+
+    if (!user_id) {
+        return res.status(422).json({ error: true, msg: "The user id is required" });
+    }
+
+    const listsFound = await getUserLists(user_id);
+
+    if (!listsFound) {
+        return res.status(404).json({ error: true, msg: "List not found" });
+    }
+
+    return res.status(200).json({ error: false, lists: listsFound });
+
+
+});
+
 app.post('/user/create_list', checkToken, async (req: Request, res: Response) => {
 
 
@@ -232,6 +252,12 @@ app.post('/user/add_movie_to_list/', checkToken, async (req: Request, res: Respo
     const movie: movieProps = {
         listId: list_id,
         TMDBid: parseInt(TMDB_id)
+    }
+
+    const movieFound = await getMovieByApiID(TMDB_id, list_id);
+
+    if (movieFound) {
+        return res.status(422).json({ error: true, msg: "Movie already exists in list" });
     }
 
     const movieCreated = await addMoviesToList(movie);
