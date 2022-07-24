@@ -102,5 +102,6 @@
     "lib": [
       "esnext"
   ]                              /* Skip type checking all .d.ts files. */
-  }
+  },
+  "include": ["src"]
 }
